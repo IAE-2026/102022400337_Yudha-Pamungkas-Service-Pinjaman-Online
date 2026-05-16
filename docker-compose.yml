@@ -1,0 +1,57 @@
+version: '3.8'
+
+services:
+  loan-service:
+    build:
+      context: .
+      dockerfile: Dockerfile
+    container_name: loan-service
+    ports:
+      - "${APP_PORT:-8001}:80"
+    environment:
+      APP_ENV: ${APP_ENV:-production}
+      APP_KEY: ${APP_KEY}
+      APP_DEBUG: ${APP_DEBUG:-false}
+      DB_HOST: loan-db
+      DB_PORT: 3306
+      DB_DATABASE: ${DB_DATABASE:-loans_db}
+      DB_USERNAME: ${DB_USERNAME:-loan_user}
+      DB_PASSWORD: ${DB_PASSWORD}
+      IAE_KEY: ${IAE_KEY:-102022400337}
+      USER_AUTH_SERVICE_URL: ${USER_AUTH_SERVICE_URL:-}
+      PAYMENT_SERVICE_URL: ${PAYMENT_SERVICE_URL:-}
+    depends_on:
+      loan-db:
+        condition: service_healthy
+    networks:
+      - iae-network
+    restart: unless-stopped
+
+  loan-db:
+    image: mysql:8.0
+    container_name: loan-db
+    environment:
+      MYSQL_DATABASE: ${DB_DATABASE:-loans_db}
+      MYSQL_USER: ${DB_USERNAME:-loan_user}
+      MYSQL_PASSWORD: ${DB_PASSWORD}
+      MYSQL_ROOT_PASSWORD: ${DB_ROOT_PASSWORD:-rootpassword}
+    volumes:
+      - loan-db-data:/var/lib/mysql
+    ports:
+      - "33061:3306"
+    healthcheck:
+      test: ["CMD", "mysqladmin", "ping", "-h", "localhost"]
+      interval: 10s
+      timeout: 5s
+      retries: 5
+    networks:
+      - iae-network
+    restart: unless-stopped
+
+volumes:
+  loan-db-data:
+
+networks:
+  iae-network:
+    driver: bridge
+    name: iae-network
