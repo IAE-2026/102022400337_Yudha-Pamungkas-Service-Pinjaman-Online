@@ -16,7 +16,7 @@ return [
     'fallback_locale' => 'en',
 
     'providers' => \Illuminate\Support\ServiceProvider::defaultProviders()->merge([
-        \Darkaonline\L5Swagger\L5SwaggerServiceProvider::class,
-        \Rebing\GraphQL\GraphQLServiceProvider::class,
+        // \Darkaonline\L5Swagger\L5SwaggerServiceProvider::class,
+        //  \Rebing\GraphQL\GraphQLServiceProvider::class,
     ])->toArray(),
 ];

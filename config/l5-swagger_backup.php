@@ -42,11 +42,11 @@ return [
             'processors'  => [],
             'pattern'     => null,
             'exclude'     => [],
-            'open_api_spec_version' => env('L5_SWAGGER_OPEN_API_SPEC_VERSION', \Darkaonline\L5Swagger\Generator::OPEN_API_DEFAULT_SPEC_VERSION),
+            'open_api_spec_version' => env('L5_SWAGGER_OPEN_API_SPEC_VERSION','3.0.0'),
         ],
         'securityDefinitions' => [
             'securitySchemes' => [
-                'IaeKey' => [
+                'IaeKey' => [ 
                     'type'        => 'apiKey',
                     'description' => 'Enter your NIM: 102022400337',
                     'name'        => 'X-IAE-KEY',

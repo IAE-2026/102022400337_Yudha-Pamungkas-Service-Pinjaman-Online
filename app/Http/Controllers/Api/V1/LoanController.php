@@ -10,6 +10,9 @@ use Illuminate\Http\JsonResponse;
 use Illuminate\Http\Request;
 use Illuminate\Validation\Rule;
 use OpenApi\Annotations as OA;
+use App\Services\IaeCloudSsoService;
+use App\Services\IaeSoapAuditService;
+use App\Services\IaeRabbitMqPublisherService;
 
 /**
  * @OA\Info(
@@ -265,7 +268,84 @@ class LoanController extends Controller
 
         return $this->success(['loan' => $loan], 'Loan updated successfully.');
     }
+    public function approve(
+        Request $request,
+        string $id,
+        IaeCloudSsoService $sso,
+        IaeSoapAuditService $soapAudit,
+        IaeRabbitMqPublisherService $publisher
+    ): JsonResponse
+{
+    $loan = Loan::find($id);
 
+    if (!$loan) {
+        return $this->error('Loan not found.', null, 404);
+    }
+
+    $validated = $request->validate([
+        'sso_email' => 'required|email'
+    ]);
+    $token = $sso->getMachineToken();
+
+    if (! $token) {
+        return response()->json([
+            'status' => 'error',
+            'message' => 'Failed to obtain IAE token.'
+        ], 500);
+    }
+    
+    if (! $token) {
+        return response()->json([
+            'status' => 'error',
+            'message' => 'Token not found in SSO response.',
+        ], 500);
+    }
+    
+    $loan->update([
+        'status' => 'approved',
+    ]);
+    
+    $payload = [
+        'loan_id' => $loan->id,
+        'applicant_name' => $loan->applicant_name,
+        'applicant_nim' => $loan->applicant_nim,
+        'amount' => $loan->amount,
+        'status' => 'approved',
+        'approved_by' => $validated['sso_email'],
+        'service' => 'pinjaman-online-service',
+    ];
+    
+    $soapResult = $soapAudit->sendAudit(
+        $token,
+        [
+            'activity_name' => 'LoanApproved',
+            'log_content' => $payload,
+        ]
+    );
+    
+    $publishResult = $publisher->publish(
+        $token,
+        [
+            'message' => [
+                'event' => 'LoanApproved',
+                'loan_id' => $loan->id,
+                'applicant_name' => $loan->applicant_name,
+                'applicant_nim' => $loan->applicant_nim,
+                'amount' => $loan->amount,
+                'status' => 'approved'
+            ]
+        ]
+    );
+    
+    return response()->json([
+        'status' => 'success',
+        'message' => 'Loan approved successfully.',
+        'soap_receipt_number' => $soapResult['receipt_number'] ?? null,
+        'soap_status' => $soapResult['soap_status'] ?? null,
+        'publish_result' => $publishResult,
+        'loan' => $loan,
+    ]);
+}
     /**
      * @OA\Delete(
      *     path="/api/v1/loans/{id}",
