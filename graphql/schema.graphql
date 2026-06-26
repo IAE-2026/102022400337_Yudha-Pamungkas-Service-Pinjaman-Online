@@ -1,0 +1,79 @@
+# =============================================================================
+# Loan Service — GraphQL Schema Definition (SDL)
+# NIM: 102022400337
+#
+# Dokumen ini adalah representasi SDL (Schema Definition Language) dari schema
+# GraphQL yang diimplementasikan menggunakan rebing/graphql-laravel.
+# Definisi schema yang dieksekusi tetap berada di:
+#   - app/GraphQL/Queries/LoansQuery.php
+#   - app/GraphQL/Queries/LoanQuery.php
+#   - config/graphql.php
+#
+# File ini disediakan sebagai dokumentasi schema (artifact), bukan sebagai
+# sumber eksekusi schema.
+# =============================================================================
+
+"""
+Representasi satu pengajuan pinjaman (loan application).
+"""
+type Loan {
+  "UUID unik dari pengajuan pinjaman."
+  id: ID!
+
+  "Nama lengkap pemohon."
+  applicant_name: String!
+
+  "NIM pemohon."
+  applicant_nim: String!
+
+  "UUID pemohon dari User/Auth Service (opsional)."
+  applicant_user_id: String
+
+  "Jumlah pinjaman yang diajukan."
+  amount: Float!
+
+  "Tenor pinjaman dalam bulan."
+  tenor_months: Int!
+
+  "Tujuan/peruntukan pinjaman."
+  purpose: String!
+
+  "Status pengajuan: pending | approved | rejected | disbursed."
+  status: LoanStatus!
+
+  "Catatan tambahan (opsional)."
+  notes: String
+
+  "Waktu pengajuan dibuat."
+  created_at: String!
+
+  "Waktu pengajuan terakhir diubah."
+  updated_at: String!
+}
+
+"""
+Status yang mungkin dimiliki oleh sebuah pengajuan pinjaman.
+"""
+enum LoanStatus {
+  pending
+  approved
+  rejected
+  disbursed
+}
+
+type Query {
+  """
+  Mengambil seluruh daftar pengajuan pinjaman.
+  Dapat difilter berdasarkan status.
+  """
+  loans(status: LoanStatus): [Loan!]!
+
+  """
+  Mengambil satu pengajuan pinjaman berdasarkan UUID.
+  """
+  loan(id: ID!): Loan
+}
+
+schema {
+  query: Query
+}

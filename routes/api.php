@@ -1,6 +1,7 @@
 <?php
 
 use App\Http\Controllers\Api\V1\LoanController;
+use App\Http\Middleware\ForceJsonContentType;
 use App\Http\Middleware\VerifyIaeKey;
 use Illuminate\Support\Facades\Route;
 
@@ -18,7 +19,7 @@ use Illuminate\Support\Facades\Route;
 |
 */
 
-Route::prefix('v1')->group(function () {
+Route::prefix('v1')->middleware([ForceJsonContentType::class])->group(function () {
 
     // Health (protected — demonstrates auth on all endpoints)
     Route::middleware([VerifyIaeKey::class])->group(function () {
