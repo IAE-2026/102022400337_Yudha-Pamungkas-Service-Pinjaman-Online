@@ -3,8 +3,8 @@
 /public/storage
 /storage/*.key
 /vendor
-.env
-.env.*
+/.env
+/.env.*
 !.env.example
 .phpunit.result.cache
 docker-compose.override.yml
@@ -17,3 +17,4 @@ yarn-error.log
 *.swp
 storage/api-docs/*.json
 storage/api-docs/*.yaml
+storage/logs/laravel.log
